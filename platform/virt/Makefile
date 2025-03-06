@@ -17,7 +17,7 @@ PKVM_MODILES = pkvm-dbg-tools
 VMLINUX := $(KERNEL_DIR)/vmlinux
 WAYOUT := $(shell exec ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 PORT := 10022
-
+#DRIVE := -drive file=$(IMAGE),format=qcow2,if=sd,id=ubu-sd -device virtio-blk-device,drive=ubu-sd
 DRIVE := -drive file=$(IMAGE),if=none,format=qcow2,id=hd0 -device virtio-blk-device,drive=hd0
 BOOTIMG := $(DRIVE)
 USB := -device qemu-xhci -device usb-kbd -device usb-tablet
