@@ -62,13 +62,13 @@ host-kernel-distclean:
 	cd $(HOST_KERNEL_DIR); sudo -E git clean -xfd
 
 pkvm-modules:
-	$(MAKE) -C pkvm-modules pkvm-modules KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu
+	$(MAKE) -C pkvm-modules pkvm-modules KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
 
 pkvm-modules-clean:
-	$(MAKE) -C pkvm-modules clean KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu
+	$(MAKE) -C pkvm-modules clean KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
 
 host-initramfs:
-	$(MAKE) -C pkvm-modules initramfs KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu  
+	$(MAKE) -C pkvm-modules initramfs KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template  
 	$(MAKE) -C pkvm-modules install OUT_IMAGE=$(BASE_DIR)/images/host/initramfs.gz
 
 ubuntu-template:
