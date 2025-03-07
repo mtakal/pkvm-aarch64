@@ -5,6 +5,8 @@ LIBNAME := lib$(PLATFORM).a
 QEMU := qemu-system-aarch64
 QEMU_DTFILE := qemu_devtree
 
+HOST_MEMORY := 8G
+
 KERNEL := $(KERNEL_DIR)/arch/arm64/boot/Image
 HOST_IMAGE_DIR := $(BASE_DIR)/images/host
 IMAGE :=  $(HOST_IMAGE_DIR)/ubuntuhost.qcow2
@@ -27,15 +29,18 @@ USE_COMP_IMG ?= 0
 
 KERNEL_OPTS :=  $(KERNEL_PKVM_PARAMS) kvm-arm.protected_modules=$(PKVM_MODILES) root=/dev/vda1 console=ttyAMA0 mem=8G nokaslr loglevel=8 rw
 
-#space between the kernel image and the inittamfs image
-HEXPAD = 0x100000
-#qemu loads the kernel to 0x40200000
-KERNEL_LOAD_ADDR := 0x40200000
+ifeq ($(HOST_MEMORY), 8G)
+INITRAMFS_ADDR := 0x5f000000
+else
+ifeq ($(HOST_MEMORY), 4G)
+INITRAMFS_ADDR := 0x3f000000
+endif
+endif
 
-PAD =  $(shell printf "%d" $(HEXPAD))
-KLEN := $(shell stat -c %s $(KERNEL))
-KSTART = $(shell printf "%d"  $(KERNEL_LOAD_ADDR))
-INITRAMFS_ADDR = $(shell printf "0x%x" $$(( $(KSTART) +  $(KLEN) + $(PAD) - $(KLEN) % $(PAD) )))
+#PAD =  $(shell printf "%d" $(HEXPAD))
+#KLEN := $(shell stat -c %s $(KERNEL))
+#KSTART = $(shell printf "%d"  $(KERNEL_LOAD_ADDR))
+#INITRAMFS_ADDR = $(shell printf "0x%x" $$(( $(KSTART) +  $(KLEN) + $(PAD) - $(KLEN) % $(PAD) )))
 
   
 SPICESOCK := /tmp/host
@@ -63,7 +68,7 @@ endif
 
 QEMUOPTS := --accel tcg,thread=multi -d $(QEMUDEBUGOPTS) $(QEMUDEBUGLOG) $(DEBUGOPTS) \
 	    -machine virt,virtualization=on,secure=off,gic-version=3 \
-	    -cpu max,sve=off,lpa2=off -smp 4 -m 8G $(NETWORK) $(USB) $(BOOTIMG) \
+	    -cpu max,sve=off,lpa2=off -smp 4 -m $(HOST_MEMORY) $(NETWORK) $(USB) $(BOOTIMG) \
 	    -kernel $(KERNEL) -append '$(KERNEL_OPTS)'
 
 ifneq (,$(filter 1, $(LOAD_KIC) $(USE_INITRAMFS)))
