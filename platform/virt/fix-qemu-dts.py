@@ -3,7 +3,6 @@ import getopt
 import sys
 from io import StringIO
 PAGE_SIZE =  4096
-KIC_ADDRESS = 0x40001000
 
 def kic_defs(size):
     out = StringIO()
@@ -18,7 +17,7 @@ def kic_defs(size):
                         reg = <0x0 0x{:x} 0x0 0x{:x}>;
                 }};
         }};
-        """.format(KIC_ADDRESS, (size + PAGE_SIZE -1) & ~(PAGE_SIZE -1)), file = out) 
+        """.format(addr, (size + PAGE_SIZE -1) & ~(PAGE_SIZE -1)), file = out) 
     
     return out.getvalue()
 

@@ -5,13 +5,14 @@ LIBNAME := lib$(PLATFORM).a
 QEMU := qemu-system-aarch64
 QEMU_DTFILE := qemu_devtree
 
-HOST_MEMORY := 8G
-
 KERNEL := $(KERNEL_DIR)/arch/arm64/boot/Image
 HOST_IMAGE_DIR := $(BASE_DIR)/images/host
 IMAGE :=  $(HOST_IMAGE_DIR)/ubuntuhost.qcow2
-IC_LOADER := $(HOST_IMAGE_DIR)/ic_loader.bin
+PVMFW_LOADER := $(HOST_IMAGE_DIR)/ic_loader.bin
+PVMFW_ADDRESS := 0x40001000
+
 INITRAMFS := $(HOST_IMAGE_DIR)/initramfs.gz
+INITRAMFS_ADDR := 0x7f000000
 
 KERNEL_PKVM_PARAMS := kvm-arm.mode=protected
 PKVM_MODILES = pkvm-dbg-tools
@@ -28,20 +29,6 @@ COMP_IMG ?= $(OBJDIR)/$(PLATFORM)/hyp-loader
 USE_COMP_IMG ?= 0
 
 KERNEL_OPTS :=  $(KERNEL_PKVM_PARAMS) kvm-arm.protected_modules=$(PKVM_MODILES) root=/dev/vda1 console=ttyAMA0 mem=8G nokaslr loglevel=8 rw
-
-ifeq ($(HOST_MEMORY), 8G)
-INITRAMFS_ADDR := 0x5f000000
-else
-ifeq ($(HOST_MEMORY), 4G)
-INITRAMFS_ADDR := 0x3f000000
-endif
-endif
-
-#PAD =  $(shell printf "%d" $(HEXPAD))
-#KLEN := $(shell stat -c %s $(KERNEL))
-#KSTART = $(shell printf "%d"  $(KERNEL_LOAD_ADDR))
-#INITRAMFS_ADDR = $(shell printf "0x%x" $$(( $(KSTART) +  $(KLEN) + $(PAD) - $(KLEN) % $(PAD) )))
-
   
 SPICESOCK := /tmp/host
 VDAGENT := -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent
@@ -68,7 +55,7 @@ endif
 
 QEMUOPTS := --accel tcg,thread=multi -d $(QEMUDEBUGOPTS) $(QEMUDEBUGLOG) $(DEBUGOPTS) \
 	    -machine virt,virtualization=on,secure=off,gic-version=3 \
-	    -cpu max,sve=off,lpa2=off -smp 4 -m $(HOST_MEMORY) $(NETWORK) $(USB) $(BOOTIMG) \
+	    -cpu max,sve=off,lpa2=off -smp 4 -m 8G $(NETWORK) $(USB) $(BOOTIMG) \
 	    -kernel $(KERNEL) -append '$(KERNEL_OPTS)'
 
 ifneq (,$(filter 1, $(LOAD_KIC) $(USE_INITRAMFS)))
@@ -78,7 +65,7 @@ TMPFILE := $(shell mktemp)
 endif
 
 ifeq ($(LOAD_KIC),1)
-EXTRAOPTS += -device loader,file=$(IC_LOADER),addr=0x40001000
+EXTRAOPTS += -device loader,file=$(PVMFW_LOADER),addr=$(PVMFW_ADDRESS)
 endif
 
 ifeq ($(USE_INITRAMFS),1)
@@ -134,7 +121,8 @@ generate-dtb:
 	@dtc -O dts -o $(QEMU_DTFILE).dts -I dtb $(QEMU_DTFILE).dtb
 ifeq ($(LOAD_KIC),1)
 	@cp $(QEMU_DTFILE).dts $(TMPFILE)
-	$(CURDIR)/fix-qemu-dts.py -i $(TMPFILE) -o $(QEMU_DTFILE).dts  -K  -s $(shell stat -c %s $(IC_LOADER))
+	$(CURDIR)/fix-qemu-dts.py -i $(TMPFILE) -o $(QEMU_DTFILE).dts  -K \
+	-a $(PVMFW_ADDRESS) -s $(shell stat -c %s $(PVMFW_LOADER))
 endif
 ifeq ($(USE_INITRAMFS),1)
 	@cp $(QEMU_DTFILE).dts $(TMPFILE)
