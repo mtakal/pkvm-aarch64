@@ -61,15 +61,15 @@ host-kernel-clean:
 host-kernel-distclean:
 	cd $(HOST_KERNEL_DIR); sudo -E git clean -xfd
 
-pkvm-modules:
-	$(MAKE) -C pkvm-modules pkvm-modules KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
+pkvm-debug-tools:
+	$(MAKE) -C pkvm-debug-tools pkvm-dbg-tools KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
 
-pkvm-modules-clean:
-	$(MAKE) -C pkvm-modules clean KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
+pkvm-debug-tools-clean:
+	$(MAKE) -C pkvm-debug-tools clean KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template
 
 host-initramfs:
-	$(MAKE) -C pkvm-modules initramfs KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template  
-	$(MAKE) -C pkvm-modules install OUT_IMAGE=$(BASE_DIR)/images/host/initramfs.gz
+	$(MAKE) -C pkvm-debug-tools initramfs KERNEL_DIR=$(HOST_KERNEL_DIR) UBUNTU_DIR=$(BASE_DIR)/oss/ubuntu-template  
+	$(MAKE) -C pkvm-debug-tools install OUT_IMAGE=$(BASE_DIR)/images/host/initramfs.gz
 
 ubuntu-template:
 	@./scripts/ubuntu-template.sh
@@ -125,4 +125,4 @@ hostimage:
 guest2host:
 	@sudo -E ./scripts/add_guest2host.sh $(USER)
 
-.PHONY: all clean target-qemu run host-initramfs $(BUILD_TOOLS) $(DIRS)
+.PHONY: all clean target-qemu run pkvm-debug-tools  host-initramfs $(BUILD_TOOLS) $(DIRS)

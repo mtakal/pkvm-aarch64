@@ -90,7 +90,6 @@ endif
 
 QEMUCMD-DTB :=   $(QEMU) $(QEMUOPTS) -machine dumpdtb=$(QEMU_DTFILE).dtb -nographic
 
-
 include $(BASE_DIR)/core/common.mk
 
 all: run
